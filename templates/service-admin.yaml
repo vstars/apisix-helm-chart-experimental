@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "apisix.fullname" . }}-admin
+  labels:
+{{ include "apisix.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.admin.serviceType }}
+  ports:
+    - port: {{ .Values.admin.servicePort }}
+      targetPort: http-admin
+      protocol: TCP
+      name: http-admin
+  selector:
+    app.kubernetes.io/name: {{ include "apisix.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

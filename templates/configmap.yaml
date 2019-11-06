@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-apisix-custom-config-file-blocks
+  labels:
+    app: {{ template "apisix.name" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  config.yaml: |
+{{ .Values.apisixConfig.config | toYaml | indent 4 }}
