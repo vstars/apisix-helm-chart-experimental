@@ -8,9 +8,6 @@ Experimental project to make it easy to deploy [apisix](https://github.com/apach
 #### Install
 
 ```bash
-# create apisix namespace
-kubectl apply -f namespace.yaml
-
 # install by helm
 helm install --name apisix --namespace apisix .
 ```
