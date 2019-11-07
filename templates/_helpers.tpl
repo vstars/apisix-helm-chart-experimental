@@ -48,5 +48,5 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 - name: wait-for-etcd
   image: "{{ .Values.waitImage.repository }}:{{ .Values.waitImage.tag }}"
   imagePullPolicy: {{ .Values.waitImage.pullPolicy }}
-  command: [ "/bin/sh", "-c", "until ETCDCTL_API=3 etcdctl --endpoints http://etcd-cluster-client:2379 endpoint health; do echo 'waiting for etcd'; sleep 1; done; echo 'bye'" ]
+  command: [ "/bin/sh", "-c", "until ETCDCTL_API=2 etcdctl --endpoints http://etcd-cluster-client.apisix.svc.cluster.local:2379 cluster-health; do echo 'waiting for etcd'; sleep 1; done; echo 'bye'" ]
 {{- end -}}

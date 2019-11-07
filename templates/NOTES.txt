@@ -17,11 +17,11 @@
 {{- else if contains "ClusterIP" .Values.service.type }}
   gateway:
   export APISIX_GATEWAY_PORT=$(kubectl get service {{ include "apisix.fullname" . }}-gateway --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].port}")
-  echo "Visit http://127.0.0.1:{{ .Values.service.port }} to use apisix gateway application"
-  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "apisix.fullname" . }}-gateway ${APISIX_GATEWAY_PORT}:{{ .Values.service.port }}
+  echo "Visit http://127.0.0.1:{{ .Values.service.port }}/apisix/status to check apisix status"
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "apisix.fullname" . }}-gateway {{ .Values.service.port }}:${APISIX_GATEWAY_PORT}
 
   admin:
   export APISIX_ADMIN_PORT=$(kubectl get service {{ include "apisix.fullname" . }}-admin --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].port}")
-  echo "Visit http://127.0.0.1:{{ .Values.admin.servicePort }} to use apisix admin application"
-  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "apisix.fullname" . }}-admin ${APISIX_ADMIN_PORT}:{{ .Values.admin.servicePort }}
+  echo "Visit http://127.0.0.1:{{ .Values.admin.servicePort }}/apisix/dashboard to use apisix dashboard"
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "apisix.fullname" . }}-admin {{ .Values.admin.servicePort }}:${APISIX_ADMIN_PORT}
 {{- end }}

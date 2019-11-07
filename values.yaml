@@ -94,8 +94,6 @@ apisixConfig:
       #     - 9211
       dns_resolver:                   # default DNS resolver, with disable IPv6 and enable local DNS
         - kube-dns.kube-system.svc.cluster.local
-        - 114.114.114.114
-        - 8.8.8.8
       ssl:
         enable: true
         enable_http2: true
@@ -140,8 +138,6 @@ apisixConfig:
 etcd-operator:
   customResources:
     createEtcdClusterCRD: true
-#    createBackupCRD: true
-#    createRestoreCRD: true
   etcdOperator:
     readinessProbe:
       enabled: true

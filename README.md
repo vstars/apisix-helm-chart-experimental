@@ -28,7 +28,8 @@ helm install --name apisix --namespace apisix .
 
 ### Known issues
 
-- When use `kube-dns` service as dns server, apisix can not connect to etcd cluster by using `etcd-cluster-client` service's FQDN `etcd-cluster-client.apisix.svc.cluster.local`. 
+- When the upstreams are the services on k8s, we should use FQDN of `kube-dns` service as dns server address(`kube-dns.kube-system.svc.cluster.local`), 
+and the `resolver` directive must have `kube-dns`'s FQDN only, otherwise nginx can not resolve the FQDN of service in k8s. Reference issue: [#298](https://github.com/openresty/openresty/issues/298)
 
 ### TODO
 

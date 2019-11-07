@@ -36,14 +36,13 @@ spec:
             - name: http-admin
               containerPort: 9180
               protocol: TCP
-          command: ["sh", "-c", "cat /usr/local/apisix/conf/config.yaml && /usr/bin/apisix init && /usr/bin/apisix init_etcd && /usr/local/openresty/bin/openresty -p /usr/local/apisix -g 'daemon off;'"]
           livenessProbe:
             httpGet:
-              path: /
+              path: /apisix/status
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /apisix/status
               port: http
           volumeMounts:
             - mountPath: /usr/local/apisix/conf/config.yaml
