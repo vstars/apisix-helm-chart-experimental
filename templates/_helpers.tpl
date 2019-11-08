@@ -48,5 +48,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 - name: wait-for-etcd
   image: "{{ .Values.waitImage.repository }}:{{ .Values.waitImage.tag }}"
   imagePullPolicy: {{ .Values.waitImage.pullPolicy }}
-  command: [ "/bin/sh", "-c", "until ETCDCTL_API=2 etcdctl --endpoints http://etcd-cluster-client.apisix.svc.cluster.local:2379 cluster-health; do echo 'waiting for etcd'; sleep 1; done; echo 'bye'" ]
+  {{- if .Values.etcdoperator.enabled }}
+  command: [ "/bin/sh", "-c", "until ETCDCTL_API=2 etcdctl --endpoints http://{{ default "etcd-cluster" .Values.etcdoperator.etcdCluster.name }}-client.{{ .Release.Namespace }}.svc.cluster.local:2379 cluster-health; do echo 'waiting for etcd'; sleep 1; done; echo 'bye'" ]
+  {{- else }}
+  command: [ "/bin/sh", "-c", "until ETCDCTL_API=2 etcdctl --endpoints {{ default "http://127.0.0.1:2379" .Values.etcd.customHost | quote }} cluster-health; do echo 'waiting for etcd'; sleep 1; done; echo 'bye'" ]
+  {{- end }}
 {{- end -}}

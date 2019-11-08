@@ -16,10 +16,82 @@ fullnameOverride: ""
 service:
   type: ClusterIP
   port: 9080
+  ssl:
+    enabled: ture
+    http2Enabled: true
+    port: 9443
+    ssl_protocols: "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3"
+    ssl_ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA256:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA"
+  enableHeartbeat: false
+  enableDebug: false
+  enableIpv6: false
+  configCenter: etcd
+  streamProxyEnabled: false
+  router:
+    http: 'radixtree_uri'
+    ssl: 'radixtree_sni'
+  plugins:
+    - example-plugin
+    - limit-req
+    - limit-count
+    - limit-conn
+    - key-auth
+    - prometheus
+    - node-status
+    - jwt-auth
+    - zipkin
+    - ip-restriction
+    - grpc-transcode
+    - serverless-pre-function
+    - serverless-post-function
+    - openid-connect
+    - proxy-rewrite
+  stream_plugins:
+    - mqtt-proxy
+
+config:
+  real_ip_header: "X-Real-IP"
+  real_ip_from:
+    - 127.0.0.1
+    - 'unix:'
+  stream_proxy:
+    tcp:
+      - 9100
+      - 9101
+    udp:
+      - 9200
+      - 9211
+  dns_resolver:
+    - kube-dns.kube-system.svc.cluster.local
 
 admin:
+  enabled: true
   servicePort: 9180
   serviceType: ClusterIP
+  allows:
+    enabled: false
+    list:
+      - 127.0.0.0/24
+      - "::/64"
+
+nginx:
+  config:
+    error_log: /dev/stderr
+    error_log_level: "error"
+    event:
+      worker_connections: 10620
+    http:
+      access_log: /dev/stdout
+      keepalive_timeout: 60s
+      client_header_timeout: 60s
+      client_body_timeout: 60s
+      send_timeout: 10s
+
+etcd:
+  enabled: true
+  customHost: ""
+  prefix: "/apisix"               # apisix configurations prefix
+  timeout: 1                      # 1 seconds
 
 ingress:
   enabled: false
@@ -58,84 +130,9 @@ waitImage:
   tag: v3.3.17
   pullPolicy: IfNotPresent
 
-apisixConfig:
-  config:
-    apisix:
-      node_listen: 9080              # APISIX listening port, should not change it
-      node_ssl_listen: 9443          # APISIX SSL listening port, should not change it
-      enable_heartbeat: true
-      enable_admin: true
-      enable_debug: false
-      enable_ipv6: true
-      config_center: etcd             # etcd: use etcd to store the config value
-      # yaml: fetch the config value from local yaml file `/your_path/conf/apisix.yaml`
-      # allow_admin:                  # http://nginx.org/en/docs/http/ngx_http_access_module.html#allow
-      #   - 127.0.0.0/24              # If we don't set any IP list, then any IP access is allowed by default.
-      #   - "::/64"
-      port_admin: 9180                # use a separate port
-      real_ip_header: "X-Real-IP"     # http://nginx.org/en/docs/http/ngx_http_realip_module.html#real_ip_header
-      real_ip_from:                   # http://nginx.org/en/docs/http/ngx_http_realip_module.html#set_real_ip_from
-        - 127.0.0.1
-        - 'unix:'
-      router:
-        http: 'radixtree_uri'         # radixtree_uri: match route by uri(base on radixtree)
-          # radixtree_host_uri: match route by host + uri(base on radixtree)
-          # r3_uri: match route by uri(base on r3)
-        # r3_host_uri: match route by host + uri(base on r3)
-
-        ssl: 'radixtree_sni'          # r3_sni: match route by SNI(base on r3)
-        # radixtree_sni: match route by SNI(base on radixtree)
-      # stream_proxy:                 # TCP/UDP proxy
-      #   tcp:                        # TCP proxy port list
-      #     - 9100
-      #     - 9101
-      #   udp:                        # UDP proxy port list
-      #     - 9200
-      #     - 9211
-      dns_resolver:                   # default DNS resolver, with disable IPv6 and enable local DNS
-        - kube-dns.kube-system.svc.cluster.local
-      ssl:
-        enable: true
-        enable_http2: true
-        listen_port: 9443
-        ssl_protocols: "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3"
-        ssl_ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA256:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:DES-CBC3-SHA"
-    nginx_config:                     # config for render the template to genarate nginx.conf
-      error_log: /dev/stderr
-      error_log_level: "error"         # warn,error
-      event:
-        worker_connections: 10620
-      http:
-        access_log: /dev/stdout
-        keepalive_timeout: 60s         # timeout during which a keep-alive client connection will stay open on the server side.
-        client_header_timeout: 60s     #  timeout for reading client request header, then 408 (Request Time-out) error is returned to the client
-        client_body_timeout: 60s       # timeout for reading client request body, then 408 (Request Time-out) error is returned to the client
-        send_timeout: 10s              # timeout for transmitting a response to the client.then the connection is closed
-    etcd:
-      host: "http://etcd-cluster-client.apisix.svc.cluster.local:2379"   # etcd address
-      prefix: "/apisix"               # apisix configurations prefix
-      timeout: 1                      # 1 seconds
-    plugins:                          # plugin list
-      - example-plugin
-      - limit-req
-      - limit-count
-      - limit-conn
-      - key-auth
-      - prometheus
-      - node-status
-      - jwt-auth
-      - zipkin
-      - ip-restriction
-      - grpc-transcode
-      - serverless-pre-function
-      - serverless-post-function
-      - openid-connect
-      - proxy-rewrite
-    stream_plugins:
-      - mqtt-proxy
-
 # override values of etcd-operator's values.yaml file
-etcd-operator:
+etcdoperator:
+  enabled: true
   customResources:
     createEtcdClusterCRD: true
   etcdOperator:

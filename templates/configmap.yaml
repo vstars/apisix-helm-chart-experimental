@@ -9,4 +9,77 @@ metadata:
     heritage: "{{ .Release.Service }}"
 data:
   config.yaml: |
-{{ .Values.apisixConfig.config | toYaml | indent 4 }}
+    apisix:
+      node_listen: {{ .Values.service.port }}
+      node_ssl_listen: {{ .Values.service.ssl.port }}
+      enable_heartbeat: {{ .Values.service.enableHeartbeat }}
+      enable_admin: {{ .Values.admin.enabled }}
+      enable_debug: {{ .Values.service.enableDebug }}
+      enable_ipv6: {{ .Values.service.enableIpv6 }}
+      config_center: {{ .Values.service.configCenter }}
+      {{- if .Values.admin.allows.enabled }}
+      allow_admin:
+      {{- range .Values.admin.allows.list }}
+        - {{ . | quote }}
+      {{- end -}}
+      {{ end }}
+      port_admin: {{ .Values.admin.servicePort }}
+      real_ip_header: {{ .Values.config.real_ip_header | quote }}
+      real_ip_from:
+      {{- range .Values.config.real_ip_from }}
+        - {{ . | quote }}
+      {{- end }}
+      router:
+      {{- range $key, $val := .Values.service.router }}
+        {{ $key }}: {{ $val | quote }}
+      {{- end }}
+      {{- if .Values.service.streamProxyEnabled }}
+      stream_proxy:
+        tcp:
+        {{- range .Values.config.stream_proxy.tcp }}
+          - {{ . }}
+        {{- end }}
+        udp:
+        {{- range .Values.config.stream_proxy.udp }}
+          - {{ . }}
+        {{- end -}}
+      {{- end }}
+      dns_resolver:
+      {{- range .Values.config.dns_resolver }}
+        - {{ . }}
+      {{- end }}
+      ssl:
+        enable: {{ .Values.service.ssl.enabled }}
+        enable_http2: {{ .Values.service.ssl.http2Enabled }}
+        listen_port: {{ .Values.service.ssl.port }}
+        ssl_protocols: {{ .Values.service.ssl.ssl_protocols | quote }}
+        ssl_ciphers: {{ .Values.service.ssl.ssl_ciphers | quote }}
+    {{- if .Values.etcd.enabled }}
+    nginx_config:
+      error_log: {{ default "/dev/stderr" .Values.nginx.config.error_log | quote }}
+      error_log_level: {{ default "error" .Values.nginx.config.error_log_level | quote }}
+      event:
+        worker_connections: {{ default 10620 .Values.nginx.config.event.worker_connections }}
+      http:
+        access_log: {{ default "/dev/stdout" .Values.nginx.config.http.access_log | quote }}
+        keepalive_timeout: {{ default "60s" .Values.nginx.config.http.keepalive_timeout }}
+        client_header_timeout: {{ default "60s" .Values.nginx.config.http.client_header_timeout }}
+        client_body_timeout: {{ default "60s" .Values.nginx.config.http.client_body_timeout }}
+        send_timeout: {{ default "10s" .Values.nginx.config.http.send_timeout }}
+    etcd:
+      {{- if .Values.etcdoperator.enabled }}
+      host: "http://{{ default "etcd-cluster" .Values.etcdoperator.etcdCluster.name }}-client.{{ .Release.Namespace }}.svc.cluster.local:2379"
+      {{- else }}
+      host: {{ default "http://127.0.0.1:2379" .Values.etcd.customHost | quote }}
+      {{- end }}
+      prefix: {{ default "/apisix" .Values.etcd.prefix | quote}}
+      timeout: {{ default 1 .Values.etcd.timeout }}
+    {{- end }}
+    plugins:
+    {{- range .Values.service.plugins }}
+      - {{ . }}
+    {{- end }}
+    stream_plugins:
+    {{- range .Values.service.stream_plugins }}
+      - {{ . }}
+    {{- end }}

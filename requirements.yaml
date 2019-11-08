@@ -1,4 +1,6 @@
 dependencies:
 - name: etcd-operator
+  alias: etcdoperator
   version: ~0.10.0
   repository: http://mirror.azure.cn/kubernetes/charts/
+  condition: etcdOperator.enabled

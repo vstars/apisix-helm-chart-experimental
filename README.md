@@ -1,5 +1,5 @@
 # apisix-helm-chart-experimental
-Experimental project to make it easy to deploy [apisix](https://github.com/apache/incubator-apisix) to k8s via helm, **not finished**!
+Experimental project to make it easy to deploy [apisix](https://github.com/apache/incubator-apisix) to k8s via helm, **not finished yet**!
 
 **NOTICE**: This project is a experimental project, do not use it in production environment!!!
 
@@ -8,7 +8,8 @@ Experimental project to make it easy to deploy [apisix](https://github.com/apach
 
 ```bash
 # install by helm
-helm install --name apisix --namespace apisix .
+NAMESPACE=apisix
+helm install --name apisix --namespace $NAMESPACE .
 ```
 
 ETCD cluster is created by [etcd-operator](https://github.com/helm/charts/tree/master/stable/etcd-operator) helm chart.
@@ -21,10 +22,11 @@ ETCD cluster is created by [etcd-operator](https://github.com/helm/charts/tree/m
     helm delete --purge apisix
     ```
 
-2. Cleanup etcd CRDs
+2. Cleanup etcd CRDs (optional)
 
     ```bash
-    kubectl get crd -n apisix | grep coreos | awk '{ print $1 }' | xargs kubectl delete crd -n apisix
+    NAMESPACE=apisix
+    kubectl get crd -n $NAMESPACE | grep coreos | awk '{ print $1 }' | xargs kubectl delete crd -n $NAMESPACE
     ```
 
 ### Known issues
@@ -41,4 +43,4 @@ during install apisix by helm command.
 
 ### TODO
 
-- [ ] Make it can be deployed to custom k8s namespace;
+- [ ] Work with istio.
